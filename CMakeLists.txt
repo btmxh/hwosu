@@ -20,7 +20,6 @@ include_directories(lzma)
 add_executable(hwosu
     lzma/LzmaDec.c
 
-    src/string_utils.cpp
     src/io_utils.cpp
     src/osu_file.cpp
     src/osr_file.cpp

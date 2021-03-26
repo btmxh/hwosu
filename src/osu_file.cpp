@@ -38,7 +38,7 @@ bool hwo::OsuFile::IsSectionLine(const std::string& line, const std::string& sec
 
 bool hwo::OsuFile::IsPropertyLine(const std::string& line, const std::string& key) noexcept {
     std::string trimmed = Trim(line);
-    if(trimmed.find(key, 0) != 0)  return false;
+    if(!hwo::StartsWith(trimmed, key))  return false;
     trimmed = Trim(trimmed.substr(key.size()));
     return trimmed[0] == ':';
 }
