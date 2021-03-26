@@ -1,2 +1,5 @@
 build
 .vscode
+
+# Skin is not uploaded because of filesize
+/res/skin
