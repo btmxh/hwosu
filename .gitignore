@@ -3,3 +3,6 @@ build
 
 # Skin is not uploaded because of filesize
 /res/skin
+
+# Output file produced by the program
+output*

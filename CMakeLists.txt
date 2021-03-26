@@ -20,6 +20,7 @@ include_directories(lzma)
 add_executable(hwosu
     lzma/LzmaDec.c
 
+    src/gl_utils.cpp
     src/io_utils.cpp
     src/osu_file.cpp
     src/osr_file.cpp
@@ -29,3 +30,6 @@ add_executable(hwosu
 target_compile_definitions(hwosu PUBLIC ${gl2vid_DEFINITIONS})
 target_include_directories(hwosu PUBLIC ${gl2vid_INCLUDE_DIR})
 target_link_libraries(hwosu PUBLIC gl2vid)
+
+find_path(STB_INCLUDE_DIRS "stb.h")
+target_include_directories(hwosu PUBLIC ${STB_INCLUDE_DIRS})
