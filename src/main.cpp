@@ -30,6 +30,7 @@ int main() {
     assert(osr.playerName == "WhiteCat");
     assert(osr.fullCombo == 0);
     assert(osr.scoreID == 2912737366L);
+    assert(osr.replaySeed == 12697024);
     std::cout << osr.score << std::endl;
 
     return 0;

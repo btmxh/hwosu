@@ -7,9 +7,11 @@ namespace hwo {
     };
 
     struct ReplayFrame {
-        io::binary_long timeOffset;
-        io::binary_float x, y;
-        io::binary_int keys;
+        uint64_t timeOffset;
+        float x, y;
+        uint32_t keys;
+
+        ReplayFrame(const std::string& string);
     };
 
     struct ReplayData {
@@ -30,6 +32,7 @@ namespace hwo {
         ReplayData replayData;
         io::binary_long scoreID;
         io::binary_double additionalModInfo;
+        int32_t replaySeed;
 
         OsrFile(const fs::path& path);
     };
