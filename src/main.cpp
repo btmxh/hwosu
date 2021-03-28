@@ -1,13 +1,14 @@
 #include <iostream>
 #include <cassert>
 #include "glad.h"
-#include "gl2vid.h"
+#include "g2v.hpp"
+#include "g2v_cvffmpeg.hpp"
 #include "osu_file.hpp"
 #include "osr_file.hpp"
 #include "gl_utils.hpp"
+#include "renderer.hpp"
 
-void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param)
-{
+void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param) {
 	auto const src_str = [source]() {
 		switch (source)
 		{
@@ -44,54 +45,50 @@ void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GL
         default: return "UNKNOWN";
 		}
 	}();
-
 	std::cout << src_str << ", " << type_str << ", " << severity_str << ", " << id << ": " << message << '\n';
 }
 
-struct usr {
-    hwo::gl::Renderer* r;
-    hwo::gl::TexHandle tex;
-};
-
+constexpr int FPS = 120, SECONDS = 60;
 int main() {
-    g2v_create_context();
+	try {
+		g2v::Init();
 
-    g2v_render_ctx ctx;
-    g2v_encoder enc;
+		{
+			g2v::RenderContext ctx(1920, 1080);
+			g2v::CVFFmpegEncoder enc(ctx, "output.mkv", 120.0, 1000000);
 
-    g2v_init_render_ctx(&ctx, 720, 1280);
-    g2v_create_ffmpeg_encoder(&enc, &ctx, 25, "output.mkv");
-    // g2v_create_glfw_encoder(&enc, &ctx);
+			glEnable(GL_DEBUG_OUTPUT);
+			glDebugMessageCallback(message_callback, nullptr);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(message_callback, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
-    hwo::gl::Renderer renderer;
-    hwo::gl::Texture texture("res/skin/shit meme.png"); //just for testing, add this file if you don't have it
-    texture.MakeResident();
+			//NVIDIA will throw this dumb warning at us every frame, so it's smart to suppress it. And yes, this is because we don't do multithreading stuff, and I won't do it because no.
+			GLuint id = 131154;
+			glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, 1, &id, GL_FALSE);
 
-    usr u = { &renderer, texture.GetHandle() };
-    enc.user_ptr = &u;
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			
+			hwo::Renderer renderer(FPS);
+			renderer.SetBeatmap("res/magma/magma_top_diff.osu");
+			renderer.SetReplay("res/magma/wc_replay.osr");
+			renderer.SetSkin("res/skin");
 
-    enc.render_video_frame = [](g2v_render_ctx* ctx, void* usrptr) -> int {
-        usr* u = reinterpret_cast<usr*>(usrptr);
-        glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        u->r->begin();
-        hwo::gl::Quad q{160, 120, 480, 360, 0.0f, 0.0f, 1.0f, 1.0f, u->tex };
-        u->r->quad(q);
-        u->r->end();
-        return ctx->current_frame_index >= 20*25;
-    };
-    std::cout << &enc << std::endl;
+			enc.SetVideoFrameCallback([&]() {
+				renderer.RenderFrame();
+				return ctx.GetFrameNumber() > SECONDS * FPS;
+			});
 
-    g2v_encode(&enc, &ctx);
+			auto start = std::chrono::high_resolution_clock::now();
+			enc.Encode();
+			auto end = std::chrono::high_resolution_clock::now();
+			std::cout << "Time ellapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0f << "s" << std::endl;
+		}
 
-    // g2v_finish_glfw_encoder(&enc);
-    g2v_finish_ffmpeg_encoder(&enc);
-    g2v_free_render_ctx(&ctx);
-
-    g2v_free_context();
+		g2v::Terminate();
+	} catch (std::exception& ex) {
+		std::cout << ex.what() << std::endl;
+	}
 
     return 0;
 }

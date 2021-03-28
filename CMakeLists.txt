@@ -10,8 +10,7 @@ add_library(glad
     glad/glad.c
 )
 
-# include_directories(../gl2vid)
-include(../gl2vid/CMakeLists.txt)
+include(${CMAKE_CURRENT_LIST_DIR}/../g2vpp/CMakeLists.txt)
 
 include_directories(glad)
 include_directories(include)
@@ -24,12 +23,13 @@ add_executable(hwosu
     src/io_utils.cpp
     src/osu_file.cpp
     src/osr_file.cpp
+    src/renderer.cpp
+    src/skin.cpp
+    src/timer.cpp
     src/main.cpp
 )
 
-target_compile_definitions(hwosu PUBLIC ${gl2vid_DEFINITIONS})
-target_include_directories(hwosu PUBLIC ${gl2vid_INCLUDE_DIR})
-target_link_libraries(hwosu PUBLIC gl2vid)
+target_link_libraries(hwosu PRIVATE g2vpp)
 
 find_path(STB_INCLUDE_DIRS "stb.h")
-target_include_directories(hwosu PUBLIC ${STB_INCLUDE_DIRS})
+target_include_directories(hwosu PUBLIC ${STB_INCLUDE_DIRS} ${G2V_INCLUDE_DIRS})
