@@ -1,5 +1,6 @@
 build
 .vscode
+.clang-format
 
 # Skin is not uploaded because of filesize
 /res/skin
