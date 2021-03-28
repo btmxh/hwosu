@@ -11,7 +11,9 @@ namespace hwo {
 
         class Texture {
         public:
+            Texture();
             Texture(const fs::path& path);
+            ~Texture();
 
             void MakeResident() const noexcept;
             void MakeNonResident() const noexcept;
@@ -30,6 +32,7 @@ namespace hwo {
         class Renderer {
         public:
             static constexpr int MAX_QUADS = 256;
+            static const float PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT;
 
             // each quad have 6 vertices (no index buffer), each vertex have 2 floats for position 
             // and 2 floats for texture coordinates

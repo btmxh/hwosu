@@ -52,6 +52,11 @@ void main() {
 }
 )";
 
+const float hwo::gl::Renderer::PLAYFIELD_WIDTH = 480.0f;
+const float hwo::gl::Renderer::PLAYFIELD_HEIGHT = 360.0f;
+
+hwo::gl::Texture::Texture(): m_tex(0) {}
+
 hwo::gl::Texture::Texture(const hwo::fs::path& path) {
     glCreateTextures(GL_TEXTURE_2D, 1, &m_tex);
     int w, h, c;
@@ -71,6 +76,13 @@ hwo::gl::Texture::Texture(const hwo::fs::path& path) {
     glTextureSubImage2D(m_tex, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     m_handle = glGetTextureHandleARB(m_tex);
+    MakeResident();
+}
+
+hwo::gl::Texture::~Texture() {
+    if(!m_tex)  return;
+    MakeNonResident();
+    glDeleteTextures(1, &m_tex);
 }
 
 void hwo::gl::Texture::MakeResident() const noexcept {
