@@ -7,11 +7,12 @@ namespace hwo {
     };
 
     struct ReplayFrame {
-        uint64_t timeOffset;
+        int64_t time;
         float x, y;
         uint32_t keys;
 
-        ReplayFrame(const std::string& string);
+        ReplayFrame();
+        ReplayFrame(const std::string& string, int64_t last_frame_time);
     };
 
     struct ReplayData {

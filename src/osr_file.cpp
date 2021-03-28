@@ -36,14 +36,16 @@ std::unique_ptr<uint8_t[]> decompressLZMA(uint8_t* src, size_t src_size, size_t&
     throw std::runtime_error("An error occurred while decompressing LZMA data");
 }
 
-hwo::ReplayFrame::ReplayFrame(const std::string& string) {
+hwo::ReplayFrame::ReplayFrame() {}
+
+hwo::ReplayFrame::ReplayFrame(const std::string& string, int64_t last_frame_time) {
     std::vector<std::string> tokens;
     Tokenize(string, '|', [&](const std::string& str) {
         tokens.push_back(str);
     });
 
     assert(tokens.size() == 4);
-    timeOffset = std::stoull(tokens[0]);
+    time = last_frame_time + std::stoll(tokens[0]);
     x = std::stof(tokens[1]);
     y = std::stof(tokens[2]);
     keys = static_cast<uint32_t>(std::stoul(tokens[3]));
@@ -79,12 +81,16 @@ hwo::OsrFile::OsrFile(const fs::path& path) {
     size_t decompressSize;
     auto decompressData = decompressLZMA(reinterpret_cast<uint8_t*>(compressData.data()), compressSize, decompressSize);
     std::string_view replayDataString(reinterpret_cast<char*>(decompressData.get()), decompressSize);
+    int64_t last_frame_time = 0;
 
     hwo::Tokenize(replayDataString, ',', [&](const std::string& token) {
         if(hwo::StartsWith(token, "-12345|0|0|")) {
             replaySeed = std::stoi(token.substr(std::string("-12345|0|0|").length()));
+            return;
         }
-        replayData.frames.push_back(hwo::ReplayFrame(token));
+        hwo::ReplayFrame frame(token, last_frame_time);
+        last_frame_time = frame.time;
+        replayData.frames.push_back(frame);
     });
 
     READ(scoreID);
